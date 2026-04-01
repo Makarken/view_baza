@@ -21,6 +21,8 @@
   .header-right{display:flex;align-items:center;gap:16px;justify-content:flex-end}
   .refresh-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;padding:7px 14px;cursor:pointer;text-transform:uppercase;transition:all .2s}
   .refresh-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+  .refresh-btn.slow{border-color:var(--border)}
+  .refresh-btn.slow:hover{border-color:var(--red);color:var(--red)}
   #last-updated{font-size:10px;color:var(--text-dim)}
 
   .stats-bar{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
@@ -109,7 +111,8 @@
   <div class="logo">База <span>с Катей</span></div>
   <div class="header-right">
     <span id="last-updated"></span>
-    <button class="refresh-btn" onclick="loadData(true)">↻ обновить</button>
+    <button class="refresh-btn" onclick="loadData(false)" title="Быстро — из кэша">↻ обновить</button>
+    <button class="refresh-btn slow" onclick="loadData(true)" title="Медленно — читает таблицу заново">↻ новые данные</button>
   </div>
 </header>
 
@@ -153,6 +156,8 @@
       </div>
       <div class="section-title">Расходы</div>
       <div class="delivery-grid">
+        <div class="delivery-item"><div class="delivery-label">Закуп €</div><div class="delivery-value" id="m-cost-buy"></div></div>
+        <div class="delivery-item"><div class="delivery-label">Ремонт €</div><div class="delivery-value" id="m-repair"></div></div>
         <div class="delivery-item"><div class="delivery-label">Доставка Buyee €</div><div class="delivery-value" id="m-del-buyee"></div></div>
         <div class="delivery-item"><div class="delivery-label">Доставка Dnipro €</div><div class="delivery-value" id="m-del-dnipro"></div></div>
         <div class="delivery-item"><div class="delivery-label">Доставка Испания €</div><div class="delivery-value" id="m-del-spain"></div></div>
@@ -166,6 +171,7 @@
 // ── КОНФИГ ──────────────────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdnKq1hs1LwWbvQTmSR1B4EgKw7jFPHhPZ5lZAJkbqtXEHIEVYDxXQTliHJRzh-1I/exec';
 const CLOUDINARY = 'https://res.cloudinary.com/dv83mie7y/image/upload/resale-crm/workspace1/';
+const UAH_RATE = 49.6; // курс для позиций 1-27
 // ────────────────────────────────────────────────────────────────────────────
 
 let allItems = [];
@@ -243,21 +249,29 @@ async function loadData(refresh) {
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'ошибка скрипта');
 
-    allItems = json.data.map(r => ({
-      num:        String(r.num),
-      photo:      r.photo || '',
-      photo_col:  r.photo_col || '',
-      source:     r.source || '',
-      del_buyee:  parseNum(r.delivery_buyee),
-      del_dnipro: parseNum(r.delivery_dnipro),
-      del_spain:  parseNum(r.delivery_spain),
-      cost:       parseNum(r.cost_eur),
-      sale:       parseNum(r.sale),
-      profit:     parseNum(r.profit),
-      margin:     r.margin || '',
-      status:     getStatus(r.status),
-      date:       r.date || '',
-    }));
+    allItems = json.data.map(r => {
+      const num = String(r.num);
+      const isUah = parseInt(num) <= 27;
+      const costRaw   = parseNum(r.cost_raw);
+      const repairRaw = parseNum(r.repair_raw);
+      return {
+        num,
+        photo:      r.photo || '',
+        photo_col:  r.photo_col || '',
+        source:     r.source || '',
+        cost_buy:   costRaw   != null ? (isUah ? +(costRaw   / UAH_RATE).toFixed(2) : costRaw)   : null,
+        repair:     repairRaw != null ? (isUah ? +(repairRaw / UAH_RATE).toFixed(2) : repairRaw) : null,
+        del_buyee:  parseNum(r.delivery_buyee),
+        del_dnipro: parseNum(r.delivery_dnipro),
+        del_spain:  parseNum(r.delivery_spain),
+        cost:       parseNum(r.cost_eur),
+        sale:       parseNum(r.sale),
+        profit:     parseNum(r.profit),
+        margin:     r.margin || '',
+        status:     getStatus(r.status),
+        date:       r.date || '',
+      };
+    });
 
     // Сохраняем в localStorage
     const timeStr = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
@@ -373,6 +387,8 @@ function openModal(idx) {
   document.getElementById('m-margin').textContent    = item.margin || '—';
   document.getElementById('m-status').innerHTML      = badge(item.status);
   document.getElementById('m-date').textContent      = item.date || '—';
+  document.getElementById('m-cost-buy').textContent  = fmt(item.cost_buy);
+  document.getElementById('m-repair').textContent    = fmt(item.repair);
   document.getElementById('m-del-buyee').textContent = fmt(item.del_buyee);
   document.getElementById('m-del-dnipro').textContent= fmt(item.del_dnipro);
   document.getElementById('m-del-spain').textContent = fmt(item.del_spain);

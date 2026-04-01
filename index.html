@@ -4,321 +4,767 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>База с Катей</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#0e0e0e;--surface:#161616;--surface2:#1e1e1e;--border:#2a2a2a;
-    --gold:#c9a84c;--gold-dim:#8a6f2e;--text:#e8e0d0;--text-dim:#7a7060;
-    --text-mid:#b0a890;--green:#4caf7a;--green-dim:#1e3d2a;
-    --blue:#5ba3c9;--blue-dim:#1a3040;--red:#c96060;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh}
+:root {
+  --bg: #090909;
+  --s1: #111111;
+  --s2: #181818;
+  --s3: #202020;
+  --border: #242424;
+  --border2: #2e2e2e;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --gold-bg: rgba(201,168,76,0.08);
+  --text: #ede8de;
+  --dim: #6a6258;
+  --mid: #a09880;
+  --green: #52c47e;
+  --green-bg: rgba(82,196,126,0.08);
+  --blue: #60a8d0;
+  --blue-bg: rgba(96,168,208,0.08);
+  --red: #d06060;
+  --glow-gold: 0 0 30px rgba(201,168,76,0.15);
+  --glow-green: 0 0 20px rgba(82,196,126,0.12);
+}
 
-  header{border-bottom:1px solid var(--border);padding:22px 40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;background:rgba(14,14,14,0.95);backdrop-filter:blur(12px);z-index:100}
-  .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;text-align:center}
-  .logo span{color:var(--text-dim);font-style:italic}
-  .header-right{display:flex;align-items:center;gap:16px;justify-content:flex-end}
-  .refresh-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;padding:7px 14px;cursor:pointer;text-transform:uppercase;transition:all .2s}
-  .refresh-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
-  .refresh-btn.slow{border-color:var(--border)}
-  .refresh-btn.slow:hover{border-color:var(--red);color:var(--red)}
-  #last-updated{font-size:10px;color:var(--text-dim)}
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  .stats-bar{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
-  .stat{flex:1;min-width:140px;padding:20px 28px;border-right:1px solid var(--border)}
-  .stat:last-child{border-right:none}
-  .stat-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
-  .stat-value{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300}
-  .stat-value.gold{color:var(--gold)}.stat-value.green{color:var(--green)}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  .filters{padding:20px 40px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .filter-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-right:8px}
-  .filter-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;padding:6px 14px;cursor:pointer;text-transform:uppercase;transition:all .2s;border-radius:2px}
-  .filter-btn:hover{border-color:var(--gold-dim);color:var(--text)}
-  .filter-btn.active{background:var(--gold);border-color:var(--gold);color:#000}
-  .count-badge{margin-left:4px;font-size:9px;opacity:.7}
-  .search-wrap{margin-left:auto}
-  .search-input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px 14px;outline:none;width:180px;transition:border-color .2s}
-  .search-input::placeholder{color:var(--text-dim)}
-  .search-input:focus{border-color:var(--gold-dim)}
+/* ── NOISE TEXTURE ─────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border)}
-  .card{background:var(--bg);cursor:pointer;transition:background .15s;animation:fadeIn .3s ease both}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  .card:hover{background:var(--surface)}
-  .card-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--surface2)}
-  .card-img-placeholder{width:100%;aspect-ratio:1/1;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--border);font-size:32px}
-  .card-body{padding:16px 18px 20px;border-top:1px solid var(--border)}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
-  .card-num{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--text-dim);line-height:1}
-  .card-status{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px}
-  .status-sold{background:var(--green-dim);color:var(--green);border:1px solid #2a5a3a}
-  .status-money{background:var(--blue-dim);color:var(--blue);border:1px solid #254060}
-  .status-active{background:#1e1a0e;color:var(--gold);border:1px solid #3a2e0a}
-  .card-prices{display:flex;gap:16px;margin-bottom:10px}
-  .price-label{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px}
-  .price-value{font-size:13px;color:var(--text-mid)}
-  .price-value.main{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--text)}
-  .card-profit{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);margin-top:4px}
-  .profit-val{font-size:12px;color:var(--green)}
-  .profit-pct{font-size:11px;color:var(--text-dim)}
-  .card-date{font-size:9px;color:var(--text-dim);margin-top:6px}
+/* ── HEADER ────────────────────────────────────── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(9,9,9,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 36px;
+  height: 64px;
+}
 
-  .loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;gap:16px;color:var(--text-dim)}
-  .loader-ring{width:32px;height:32px;border:1px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .loader-text{font-size:10px;letter-spacing:.2em;text-transform:uppercase}
-  .empty{padding:80px 40px;text-align:center;color:var(--text-dim);font-size:11px;letter-spacing:.1em;line-height:2}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: .2em;
+  color: var(--gold);
+  text-transform: uppercase;
+  text-align: center;
+  grid-column: 2;
+}
+.logo em { color: var(--dim); font-style: italic; font-weight: 300; }
 
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
-  .modal{background:var(--surface);border:1px solid var(--border);max-width:720px;width:100%;max-height:90vh;overflow-y:auto;animation:modalIn .2s ease}
-  @keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-  .modal-img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--surface2)}
-  .modal-body{padding:28px 32px}
-  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-  .modal-num{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--text-dim);line-height:1}
-  .modal-close{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;letter-spacing:.1em;transition:all .2s}
-  .modal-close:hover{border-color:var(--red);color:var(--red)}
-  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px}
-  .modal-field-label{font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
-  .modal-field-value{font-size:14px;color:var(--text)}
-  .modal-field-value.big{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300}
-  .modal-field-value.green{color:var(--green)}
-  .modal-field-value.gold{color:var(--gold)}
-  .section-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--border)}
-  .delivery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-  .delivery-item{background:var(--surface2);padding:10px 12px;border:1px solid var(--border)}
-  .delivery-label{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
-  .delivery-value{font-size:13px;color:var(--text-mid)}
-  .modal-source{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);font-size:9px;color:var(--text-dim);word-break:break-all}
-  .modal-source a{color:var(--blue);text-decoration:none}
-  .modal-source a:hover{text-decoration:underline}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+  grid-column: 3;
+}
 
-  @media(max-width:600px){
-    header{padding:18px 20px}
-    .filters{padding:16px 20px}
-    .grid{grid-template-columns:repeat(2,1fr)}
-    .modal-grid{grid-template-columns:1fr}
-    .delivery-grid{grid-template-columns:1fr 1fr}
-  }
+#last-updated { font-size: 9px; color: var(--dim); letter-spacing: .05em; }
+
+.btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--gold); color: var(--gold); }
+.btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+/* ── STATS ──────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+}
+
+.stat {
+  padding: 18px 24px;
+  border-right: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.stat:last-child { border-right: none; }
+
+.stat-label {
+  font-size: 8px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+
+.stat-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+  transition: color .3s;
+}
+.stat-val.g { color: var(--green); }
+.stat-val.gold { color: var(--gold); }
+
+/* ── TOOLBAR ────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 36px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  height: 52px;
+}
+
+.pills {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pill {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .1em;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all .2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pill:hover { border-color: var(--gold); color: var(--text); }
+.pill.active { background: var(--gold); border-color: var(--gold); color: #000; }
+.pill-count {
+  font-size: 8px;
+  opacity: .7;
+  background: rgba(0,0,0,0.2);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.divider { width: 1px; height: 20px; background: var(--border2); margin: 0 12px; flex-shrink: 0; }
+
+.sort-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.sort-label { font-size: 9px; color: var(--dim); letter-spacing: .1em; text-transform: uppercase; }
+
+.sort-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.sort-btn:hover { border-color: var(--border2); color: var(--text); }
+.sort-btn.active { border-color: var(--mid); color: var(--text); }
+
+.search-wrap { margin-left: auto; flex-shrink: 0; }
+.search {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 6px 14px;
+  width: 160px;
+  outline: none;
+  transition: border-color .2s;
+}
+.search::placeholder { color: var(--dim); }
+.search:focus { border-color: var(--gold); }
+
+/* ── TOP BLOCK ──────────────────────────────────── */
+.top-block {
+  padding: 24px 36px 0;
+  display: none;
+}
+.top-block.visible { display: block; }
+.top-title {
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.top-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.top-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin-bottom: 1px;
+}
+
+/* ── GRID ───────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── CARD ───────────────────────────────────────── */
+.card {
+  background: var(--bg);
+  cursor: pointer;
+  transition: background .2s, transform .2s, box-shadow .2s;
+  position: relative;
+  animation: cardIn .4s ease both;
+  overflow: hidden;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card:hover {
+  background: var(--s2);
+  z-index: 2;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), var(--glow-gold);
+  transform: translateY(-2px);
+}
+
+.card-img-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  display: block;
+  transition: transform .4s ease;
+  background: var(--s2);
+}
+
+.card:hover .card-img { transform: scale(1.04); }
+
+.card-placeholder {
+  width: 100%;
+  aspect-ratio: 1/1;
+  background: var(--s2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--border2);
+  font-size: 28px;
+}
+
+/* margin badge on image */
+.margin-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  padding: 3px 7px;
+  border-radius: 2px;
+  letter-spacing: .05em;
+  font-weight: 500;
+}
+.mb-high  { background: rgba(82,196,126,0.85); color: #000; }
+.mb-mid   { background: rgba(201,168,76,0.85); color: #000; }
+.mb-low   { background: rgba(208,96,96,0.7);   color: #fff; }
+
+.card-body {
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.card-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--dim);
+  line-height: 1;
+}
+
+.status-pill {
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+.sp-sold  { background: var(--green-bg); color: var(--green); border: 1px solid rgba(82,196,126,.2); }
+.sp-money { background: var(--blue-bg);  color: var(--blue);  border: 1px solid rgba(96,168,208,.2); }
+.sp-active{ background: var(--gold-bg);  color: var(--gold);  border: 1px solid rgba(201,168,76,.2); }
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price-block { flex: 1; }
+.price-lbl { font-size: 7px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+.price-val { font-size: 12px; color: var(--mid); }
+.price-val.main { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--text); }
+
+.card-profit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.profit-val { font-size: 12px; color: var(--green); }
+.profit-pct { font-size: 10px; color: var(--dim); }
+.card-date  { font-size: 8px; color: var(--dim); margin-top: 5px; }
+
+/* ── LOADER ─────────────────────────────────────── */
+.loader {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 100px 40px; gap: 20px;
+}
+.ring {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-txt { font-size: 9px; letter-spacing: .25em; text-transform: uppercase; color: var(--dim); }
+.empty { padding: 80px; text-align: center; color: var(--dim); font-size: 10px; letter-spacing: .1em; line-height: 2.5; }
+
+/* ── MODAL ──────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  background: var(--s1);
+  border: 1px solid var(--border2);
+  max-width: 780px; width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: modalIn .22s ease;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), var(--glow-gold);
+}
+@keyframes modalIn {
+  from { opacity:0; transform: scale(.95) translateY(10px); }
+  to   { opacity:1; transform: scale(1)   translateY(0); }
+}
+
+.modal-img {
+  width: 100%; aspect-ratio: 1/1;
+  object-fit: cover; display: block;
+  background: var(--s2);
+}
+
+.modal-nav {
+  display: flex;
+  justify-content: space-between;
+  background: var(--s2);
+  border-bottom: 1px solid var(--border);
+}
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  letter-spacing: .1em;
+  transition: color .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-btn:hover { color: var(--gold); }
+.nav-btn:disabled { opacity: .2; cursor: default; }
+.nav-pos { font-size: 9px; color: var(--dim); align-self: center; }
+
+.modal-body { padding: 28px 32px; }
+
+.modal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.modal-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px; font-weight: 300;
+  color: var(--dim); line-height: 1;
+}
+
+.modal-right { display: flex; align-items: center; gap: 10px; }
+
+.close-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--dim);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 7px 13px;
+  cursor: pointer;
+  letter-spacing: .1em;
+  transition: all .2s;
+}
+.close-btn:hover { border-color: var(--red); color: var(--red); }
+
+.modal-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin-bottom: 20px;
+}
+
+.kpi {
+  background: var(--s2);
+  padding: 16px 18px;
+}
+.kpi-label { font-size: 8px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+.kpi-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; }
+.kpi-val.g { color: var(--green); }
+.kpi-val.gold { color: var(--gold); }
+
+.section-hdr {
+  font-size: 8px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  padding: 14px 0 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.costs-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.cost-item {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+.cost-label { font-size: 7px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+.cost-val { font-size: 12px; color: var(--mid); }
+
+.modal-src {
+  font-size: 8px; color: var(--dim);
+  word-break: break-all; line-height: 1.8;
+}
+.modal-src a { color: var(--blue); text-decoration: none; }
+.modal-src a:hover { text-decoration: underline; }
+
+/* ── SCROLLBAR ──────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+/* ── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 700px) {
+  header { padding: 0 16px; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .toolbar { padding: 0 16px; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  .top-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-kpis { grid-template-columns: repeat(2, 1fr); }
+  .costs-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-body { padding: 18px 18px; }
+  .top-block { padding: 16px 16px 0; }
+}
 </style>
 </head>
 <body>
 
 <header>
   <div></div>
-  <div class="logo">База <span>с Катей</span></div>
-  <div class="header-right">
+  <div class="logo">База <em>с Катей</em></div>
+  <div class="header-actions">
     <span id="last-updated"></span>
-    <button class="refresh-btn" onclick="loadData(false)" title="Быстро — из кэша">↻ обновить</button>
-    <button class="refresh-btn slow" onclick="loadData(true)" title="Медленно — читает таблицу заново">↻ новые данные</button>
+    <button class="btn" onclick="loadData(false)">↻ обновить</button>
+    <button class="btn danger" onclick="loadData(true)">↻ новые данные</button>
   </div>
 </header>
 
-<div class="stats-bar">
-  <div class="stat"><div class="stat-label">Всего позиций</div><div class="stat-value" id="st-total">—</div></div>
-  <div class="stat"><div class="stat-label">Продано</div><div class="stat-value green" id="st-sold">—</div></div>
-  <div class="stat"><div class="stat-label">В наличии</div><div class="stat-value gold" id="st-active">—</div></div>
-  <div class="stat"><div class="stat-label">Оборот €</div><div class="stat-value" id="st-turnover">—</div></div>
-  <div class="stat"><div class="stat-label">Прибыль €</div><div class="stat-value green" id="st-profit">—</div></div>
-  <div class="stat"><div class="stat-label">Средняя накрутка</div><div class="stat-value gold" id="st-avg-margin">—</div></div>
+<div class="stats">
+  <div class="stat"><div class="stat-label">Позиций</div><div class="stat-val" id="st-total">—</div></div>
+  <div class="stat"><div class="stat-label">Продано</div><div class="stat-val g" id="st-sold">—</div></div>
+  <div class="stat"><div class="stat-label">В наличии</div><div class="stat-val gold" id="st-active">—</div></div>
+  <div class="stat"><div class="stat-label">Оборот €</div><div class="stat-val" id="st-turnover">—</div></div>
+  <div class="stat"><div class="stat-label">Прибыль €</div><div class="stat-val g" id="st-profit">—</div></div>
+  <div class="stat"><div class="stat-label">Ср. накрутка</div><div class="stat-val gold" id="st-margin">—</div></div>
 </div>
 
-<div class="filters">
-  <span class="filter-label">Статус</span>
-  <button class="filter-btn active" data-filter="all"    onclick="setFilter('all')">Все <span class="count-badge" id="cnt-all"></span></button>
-  <button class="filter-btn"        data-filter="active" onclick="setFilter('active')">В наличии <span class="count-badge" id="cnt-active"></span></button>
-  <button class="filter-btn"        data-filter="sold"   onclick="setFilter('sold')">Продано <span class="count-badge" id="cnt-sold"></span></button>
-  <button class="filter-btn"        data-filter="money"  onclick="setFilter('money')">Деньги зашли <span class="count-badge" id="cnt-money"></span></button>
-  <div class="search-wrap">
-    <input class="search-input" type="text" placeholder="Поиск по номеру..." oninput="renderCards()" id="searchInput">
+<div class="toolbar">
+  <div class="pills">
+    <button class="pill active" data-f="all"    onclick="setFilter('all')">Все <span class="pill-count" id="cnt-all"></span></button>
+    <button class="pill"        data-f="active" onclick="setFilter('active')">В наличии <span class="pill-count" id="cnt-active"></span></button>
+    <button class="pill"        data-f="sold"   onclick="setFilter('sold')">Продано <span class="pill-count" id="cnt-sold"></span></button>
+    <button class="pill"        data-f="money"  onclick="setFilter('money')">Деньги зашли <span class="pill-count" id="cnt-money"></span></button>
   </div>
+  <div class="divider"></div>
+  <div class="sort-wrap">
+    <span class="sort-label">Сорт.</span>
+    <button class="sort-btn active" data-s="num"    onclick="setSort('num')">По номеру</button>
+    <button class="sort-btn"        data-s="profit" onclick="setSort('profit')">По прибыли</button>
+    <button class="sort-btn"        data-s="margin" onclick="setSort('margin')">По накрутке</button>
+    <button class="sort-btn"        data-s="date"   onclick="setSort('date')">По дате</button>
+  </div>
+  <div class="search-wrap">
+    <input class="search" type="text" placeholder="Поиск..." oninput="renderAll()" id="searchInput">
+  </div>
+</div>
+
+<div class="top-block" id="topBlock">
+  <div class="top-title">★ Топ по прибыли</div>
+  <div class="top-grid" id="topGrid"></div>
 </div>
 
 <div id="main"></div>
 
-<div id="modal" class="modal-overlay" style="display:none" onclick="closeModal(event)">
-  <div class="modal">
-    <div id="modal-img-wrap"></div>
+<div class="overlay" id="overlay" style="display:none" onclick="closeOverlay(event)">
+  <div class="modal" id="modalBox">
+    <div id="mImgWrap"></div>
+    <div class="modal-nav">
+      <button class="nav-btn" id="navPrev" onclick="navigate(-1)">← Пред.</button>
+      <span class="nav-pos" id="navPos"></span>
+      <button class="nav-btn" id="navNext" onclick="navigate(1)">След. →</button>
+    </div>
     <div class="modal-body">
-      <div class="modal-header">
-        <div class="modal-num" id="m-num"></div>
-        <button class="modal-close" onclick="closeModalDirect()">✕ закрыть</button>
+      <div class="modal-top">
+        <div class="modal-num" id="mNum"></div>
+        <div class="modal-right">
+          <div id="mStatus"></div>
+          <button class="close-btn" onclick="closeModal()">✕ закрыть</button>
+        </div>
       </div>
-      <div class="modal-grid">
-        <div><div class="modal-field-label">Себестоимость</div><div class="modal-field-value big" id="m-cost"></div></div>
-        <div><div class="modal-field-label">Продажа</div><div class="modal-field-value big green" id="m-sale"></div></div>
-        <div><div class="modal-field-label">Прибыль</div><div class="modal-field-value big green" id="m-profit"></div></div>
-        <div><div class="modal-field-label">Накрутка</div><div class="modal-field-value big gold" id="m-margin"></div></div>
-        <div><div class="modal-field-label">Статус</div><div class="modal-field-value" id="m-status"></div></div>
-        <div><div class="modal-field-label">Дата продажи</div><div class="modal-field-value" id="m-date"></div></div>
+
+      <div class="modal-kpis">
+        <div class="kpi"><div class="kpi-label">Себестоимость</div><div class="kpi-val" id="mCost"></div></div>
+        <div class="kpi"><div class="kpi-label">Продажа</div><div class="kpi-val g" id="mSale"></div></div>
+        <div class="kpi"><div class="kpi-label">Прибыль</div><div class="kpi-val g" id="mProfit"></div></div>
+        <div class="kpi"><div class="kpi-label">Накрутка</div><div class="kpi-val gold" id="mMargin"></div></div>
       </div>
-      <div class="section-title">Расходы</div>
-      <div class="delivery-grid">
-        <div class="delivery-item"><div class="delivery-label">Закуп €</div><div class="delivery-value" id="m-cost-buy"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Ремонт €</div><div class="delivery-value" id="m-repair"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Buyee €</div><div class="delivery-value" id="m-del-buyee"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Dnipro €</div><div class="delivery-value" id="m-del-dnipro"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Испания €</div><div class="delivery-value" id="m-del-spain"></div></div>
+
+      <div class="section-hdr">Расходы</div>
+      <div class="costs-grid">
+        <div class="cost-item"><div class="cost-label">Закуп €</div><div class="cost-val" id="mCostBuy"></div></div>
+        <div class="cost-item"><div class="cost-label">Ремонт €</div><div class="cost-val" id="mRepair"></div></div>
+        <div class="cost-item"><div class="cost-label">Доставка Buyee</div><div class="cost-val" id="mDelBuyee"></div></div>
+        <div class="cost-item"><div class="cost-label">Доставка Dnipro</div><div class="cost-val" id="mDelDnipro"></div></div>
+        <div class="cost-item"><div class="cost-label">Доставка Испания</div><div class="cost-val" id="mDelSpain"></div></div>
       </div>
-      <div class="modal-source" id="m-source"></div>
+
+      <div class="modal-src" id="mSrc"></div>
     </div>
   </div>
 </div>
 
 <script>
-// ── КОНФИГ ──────────────────────────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdnKq1hs1LwWbvQTmSR1B4EgKw7jFPHhPZ5lZAJkbqtXEHIEVYDxXQTliHJRzh-1I/exec';
-const CLOUDINARY = 'https://res.cloudinary.com/dv83mie7y/image/upload/resale-crm/workspace1/';
-const UAH_RATE = 49.6; // курс для позиций 1-27
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdnKq1hs1LwWbvQTmSR1B4EgKw7jFPHhPZ5lZAJkbqtXEHIEVYDxXQTliHJRzh-1I/exec';
+const CDN = 'https://res.cloudinary.com/dv83mie7y/image/upload/resale-crm/workspace1/';
+const UAH = 49.6;
+const LS_DATA = 'baza_data_v3';
+const LS_TIME = 'baza_time_v3';
 // ────────────────────────────────────────────────────────────────────────────
 
-let allItems = [];
-let currentFilter = 'all';
+let allItems = [], currentFilter = 'all', currentSort = 'num', modalIdx = 0;
 
-function getImgUrl(item) {
+// ── UTILS ──────────────────────────────────────────────────────────────────
+const p = s => { if (s==null||s==='') return null; const n=parseFloat(String(s).replace(',','.')); return isNaN(n)?null:n; };
+const f = (n,suf='€') => n==null ? '—' : n.toLocaleString('ru-RU',{maximumFractionDigits:2})+' '+suf;
+const fInt = n => n==null ? '—' : Math.round(n).toLocaleString('ru-RU')+' €';
+const status = s => { s=(s||'').toLowerCase(); if(s.includes('продано')) return 'sold'; if(s.includes('деньги')) return 'money'; return 'active'; };
+const badge = s => {
+  if(s==='sold')  return '<span class="status-pill sp-sold">Продано</span>';
+  if(s==='money') return '<span class="status-pill sp-money">Деньги зашли</span>';
+  return '<span class="status-pill sp-active">В наличии</span>';
+};
+const imgUrl = item => {
   if (item.photo && item.photo.startsWith('http')) return item.photo;
-  const col = (item.photo_col || '').trim();
-  if (col && !col.startsWith('http')) return CLOUDINARY + col;
+  const c = (item.photo_col||'').trim();
+  if (c && !c.startsWith('http')) return CDN + c;
   return null;
+};
+const marginClass = m => {
+  if (m==null) return '';
+  if (m >= 120) return 'mb-high';
+  if (m >= 70)  return 'mb-mid';
+  return 'mb-low';
+};
+
+function animateCount(el, target, suffix='') {
+  if (target == null || isNaN(target)) { el.textContent = '—'; return; }
+  const start = 0, dur = 600, s = Date.now();
+  const tick = () => {
+    const t = Math.min(1, (Date.now()-s)/dur);
+    const ease = 1 - Math.pow(1-t, 3);
+    el.textContent = Math.round(start + (target-start)*ease).toLocaleString('ru-RU') + suffix;
+    if (t < 1) requestAnimationFrame(tick);
+  };
+  tick();
 }
 
-function parseNum(s) {
-  if (s == null || s === '') return null;
-  const n = parseFloat(String(s).replace(',', '.'));
-  return isNaN(n) ? null : n;
-}
-
-function fmt(n, suf=' €') {
-  if (n == null) return '—';
-  return n.toLocaleString('ru-RU', {maximumFractionDigits:2}) + suf;
-}
-
-function fmtUah(n) {
-  if (n == null) return '—';
-  return n.toLocaleString('ru-RU', {maximumFractionDigits:0}) + ' грн';
-}
-
-function getStatus(s) {
-  s = (s||'').trim().toLowerCase();
-  if (s.includes('продано')) return 'sold';
-  if (s.includes('деньги'))  return 'money';
-  return 'active';
-}
-
-function badge(s) {
-  if (s==='sold')  return '<span class="card-status status-sold">Продано</span>';
-  if (s==='money') return '<span class="card-status status-money">Деньги зашли</span>';
-  return '<span class="card-status status-active">В наличии</span>';
-}
-
-async function loadData(refresh) {
-  const LS_KEY = 'baza_katey_data';
-  const LS_TIME = 'baza_katey_time';
-
-  // При открытии страницы — грузим из localStorage мгновенно
-  if (!refresh) {
-    const cached = localStorage.getItem(LS_KEY);
+// ── LOAD ───────────────────────────────────────────────────────────────────
+async function loadData(forceRefresh) {
+  if (!forceRefresh) {
+    const cached = localStorage.getItem(LS_DATA);
     if (cached) {
       try {
         allItems = JSON.parse(cached);
-        const savedTime = localStorage.getItem(LS_TIME);
-        updateStats();
-        renderCards();
-        document.getElementById('last-updated').textContent =
-          'кэш от ' + (savedTime || '?');
+        const t = localStorage.getItem(LS_TIME);
+        document.getElementById('last-updated').textContent = 'кэш ' + (t||'');
+        updateStats(); renderAll();
         return;
       } catch(e) {}
     }
   }
 
-  // Обновить или первый раз — грузим с сервера
   document.getElementById('main').innerHTML =
-    '<div class="loader"><div class="loader-ring"></div><div class="loader-text">Загрузка с сервера…</div></div>';
-
-  if (APPS_SCRIPT_URL === 'ВСТАВЬ_URL_СЮДА') {
-    document.getElementById('main').innerHTML =
-      '<div class="empty">Вставь URL Apps Script в код<br>(константа APPS_SCRIPT_URL)</div>';
-    return;
-  }
+    '<div class="loader"><div class="ring"></div><div class="loader-txt">Загрузка с сервера</div></div>';
 
   try {
-    const url  = APPS_SCRIPT_URL + (refresh ? '?refresh=1' : '');
-    const res  = await fetch(url);
+    const url = SCRIPT_URL + (forceRefresh ? '?refresh=1' : '');
+    const res = await fetch(url);
     const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'ошибка скрипта');
+    if (!json.ok) throw new Error(json.error);
 
     allItems = json.data.map(r => {
       const num = String(r.num);
       const isUah = parseInt(num) <= 27;
-      const costRaw   = parseNum(r.cost_raw);
-      const repairRaw = parseNum(r.repair_raw);
+      // handle both old (cost_uah) and new (cost_raw) field names
+      const costRaw   = p(r.cost_raw   ?? r.cost_uah);
+      const repairRaw = p(r.repair_raw ?? r.repair);
+      const marginRaw = p(r.margin);
       return {
         num,
         photo:      r.photo || '',
         photo_col:  r.photo_col || '',
         source:     r.source || '',
-        cost_buy:   costRaw   != null ? (isUah ? +(costRaw   / UAH_RATE).toFixed(2) : costRaw)   : null,
-        repair:     repairRaw != null ? (isUah ? +(repairRaw / UAH_RATE).toFixed(2) : repairRaw) : null,
-        del_buyee:  parseNum(r.delivery_buyee),
-        del_dnipro: parseNum(r.delivery_dnipro),
-        del_spain:  parseNum(r.delivery_spain),
-        cost:       parseNum(r.cost_eur),
-        sale:       parseNum(r.sale),
-        profit:     parseNum(r.profit),
-        margin:     r.margin || '',
-        status:     getStatus(r.status),
+        cost_buy:   costRaw   != null ? (isUah ? +(costRaw/UAH).toFixed(2)   : costRaw)   : null,
+        repair:     repairRaw != null ? (isUah ? +(repairRaw/UAH).toFixed(2) : repairRaw) : null,
+        del_buyee:  p(r.delivery_buyee),
+        del_dnipro: p(r.delivery_dnipro),
+        del_spain:  p(r.delivery_spain),
+        cost:       p(r.cost_eur),
+        sale:       p(r.sale),
+        profit:     p(r.profit),
+        margin:     marginRaw,
+        status:     status(r.status),
         date:       r.date || '',
       };
-    });
+    }).filter(i => (i.cost && i.cost > 0) || (i.sale && i.sale > 0) || i.photo);
 
-    // Сохраняем в localStorage
-    const timeStr = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(allItems));
-      localStorage.setItem(LS_TIME, timeStr);
-    } catch(e) {}
-
-    updateStats();
-    renderCards();
-    document.getElementById('last-updated').textContent = 'обновлено ' + timeStr;
+    const t = new Date().toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    try { localStorage.setItem(LS_DATA, JSON.stringify(allItems)); localStorage.setItem(LS_TIME, t); } catch(e){}
+    document.getElementById('last-updated').textContent = 'обновлено ' + t;
+    updateStats(); renderAll();
   } catch(e) {
-    // Если сервер не ответил — показываем кэш если есть
-    const cached = localStorage.getItem(LS_KEY);
+    const cached = localStorage.getItem(LS_DATA);
     if (cached) {
       allItems = JSON.parse(cached);
-      updateStats();
-      renderCards();
-      document.getElementById('last-updated').textContent = '⚠ офлайн, кэш от ' + (localStorage.getItem(LS_TIME)||'?');
+      updateStats(); renderAll();
+      document.getElementById('last-updated').textContent = '⚠ офлайн';
     } else {
-      document.getElementById('main').innerHTML =
-        `<div class="empty">Ошибка загрузки<br>${e.message}</div>`;
+      document.getElementById('main').innerHTML = `<div class="empty">Ошибка: ${e.message}</div>`;
     }
   }
 }
 
+// ── STATS ──────────────────────────────────────────────────────────────────
 function updateStats() {
   const sold   = allItems.filter(i => i.status==='sold'||i.status==='money');
   const active = allItems.filter(i => i.status==='active');
   const turnover = sold.reduce((s,i)=>s+(i.sale||0),0);
   const profit   = sold.reduce((s,i)=>s+(i.profit||0),0);
-  const margins  = sold.map(i=>parseNum(i.margin)).filter(v=>v!=null);
+  const margins  = sold.map(i=>i.margin).filter(v=>v!=null);
   const avg = margins.length ? margins.reduce((a,b)=>a+b,0)/margins.length : null;
 
-  document.getElementById('st-total').textContent    = allItems.length;
-  document.getElementById('st-sold').textContent     = sold.length;
-  document.getElementById('st-active').textContent   = active.length;
-  document.getElementById('st-turnover').textContent = fmt(turnover);
-  document.getElementById('st-profit').textContent   = fmt(profit);
-  document.getElementById('st-avg-margin').textContent = avg ? avg.toFixed(1)+'%' : '—';
+  animateCount(document.getElementById('st-total'), allItems.length);
+  animateCount(document.getElementById('st-sold'), sold.length);
+  animateCount(document.getElementById('st-active'), active.length);
+  animateCount(document.getElementById('st-turnover'), Math.round(turnover), ' €');
+  animateCount(document.getElementById('st-profit'), Math.round(profit), ' €');
+  document.getElementById('st-margin').textContent = avg ? avg.toFixed(1)+'%' : '—';
+
   document.getElementById('cnt-all').textContent    = allItems.length;
   document.getElementById('cnt-active').textContent = active.length;
   document.getElementById('cnt-sold').textContent   = allItems.filter(i=>i.status==='sold').length;
   document.getElementById('cnt-money').textContent  = allItems.filter(i=>i.status==='money').length;
 }
 
-function renderCards() {
+// ── FILTER + SORT ──────────────────────────────────────────────────────────
+function getFiltered() {
   const search = document.getElementById('searchInput').value.trim().toLowerCase();
   let items = allItems.filter(i => {
     if (currentFilter==='sold')   return i.status==='sold';
@@ -327,86 +773,157 @@ function renderCards() {
     return true;
   });
   if (search) items = items.filter(i => i.num.includes(search));
-
-  if (!items.length) {
-    document.getElementById('main').innerHTML = '<div class="empty">Ничего не найдено</div>';
-    return;
-  }
-
-  const html = items.map((item, idx) => {
-    const url = getImgUrl(item);
-    const img = url
-      ? `<img class="card-img" src="${url}" loading="lazy" onerror="this.outerHTML='<div class=card-img-placeholder>◇</div>'">`
-      : `<div class="card-img-placeholder">◇</div>`;
-    const profitHtml = item.profit != null
-      ? `<div class="card-profit"><span class="profit-val">+${fmt(item.profit)}</span><span class="profit-pct">${item.margin}</span></div>` : '';
-
-    return `<div class="card" onclick="openModal(${idx})" style="animation-delay:${Math.min(idx*0.025,.5)}s">
-      ${img}
-      <div class="card-body">
-        <div class="card-top"><div class="card-num">${item.num}</div>${badge(item.status)}</div>
-        <div class="card-prices">
-          <div><div class="price-label">Себест.</div><div class="price-value">${fmt(item.cost)}</div></div>
-          ${item.sale!=null?`<div><div class="price-label">Продажа</div><div class="price-value main">${fmt(item.sale)}</div></div>`:''}
-        </div>
-        ${profitHtml}
-        ${item.date?`<div class="card-date">${item.date}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('main').innerHTML = `<div class="grid">${html}</div>`;
+  items = [...items].sort((a,b) => {
+    if (currentSort==='profit') return (b.profit||0)-(a.profit||0);
+    if (currentSort==='margin') return (b.margin||0)-(a.margin||0);
+    if (currentSort==='date')   return (b.date||'').localeCompare(a.date||'');
+    return parseInt(a.num)-parseInt(b.num);
+  });
+  return items;
 }
 
 function setFilter(f) {
   currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter===f));
+  document.querySelectorAll('.pill').forEach(b => b.classList.toggle('active', b.dataset.f===f));
+  renderAll();
+}
+
+function setSort(s) {
+  currentSort = s;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.s===s));
+  renderAll();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderTop();
   renderCards();
 }
 
-function openModal(idx) {
-  const search = document.getElementById('searchInput').value.trim().toLowerCase();
-  let items = allItems.filter(i => {
-    if (currentFilter==='sold')   return i.status==='sold';
-    if (currentFilter==='money')  return i.status==='money';
-    if (currentFilter==='active') return i.status==='active';
-    return true;
-  });
-  if (search) items = items.filter(i => i.num.includes(search));
-  const item = items[idx];
-  if (!item) return;
+function renderTop() {
+  const sold = allItems.filter(i => i.profit != null && i.profit > 0)
+    .sort((a,b) => (b.profit||0)-(a.profit||0)).slice(0,3);
+  const block = document.getElementById('topBlock');
+  if (!sold.length || currentFilter !== 'all') { block.classList.remove('visible'); return; }
+  block.classList.add('visible');
+  document.getElementById('topGrid').innerHTML = sold.map((item,idx) => cardHTML(item, idx, true)).join('');
+}
 
-  const url = getImgUrl(item);
-  document.getElementById('modal-img-wrap').innerHTML = url
-    ? `<img class="modal-img" src="${url}">` : '';
+function cardHTML(item, idx, isTop=false) {
+  const url = imgUrl(item);
+  const img = url
+    ? `<img class="card-img" src="${url}" loading="lazy" onerror="this.outerHTML='<div class=card-placeholder>◇</div>'">`
+    : `<div class="card-placeholder">◇</div>`;
 
-  document.getElementById('m-num').textContent       = '# ' + item.num;
-  document.getElementById('m-cost').textContent      = fmt(item.cost);
-  document.getElementById('m-sale').textContent      = fmt(item.sale);
-  document.getElementById('m-profit').textContent    = item.profit!=null ? '+'+fmt(item.profit) : '—';
-  document.getElementById('m-margin').textContent    = item.margin || '—';
-  document.getElementById('m-status').innerHTML      = badge(item.status);
-  document.getElementById('m-date').textContent      = item.date || '—';
-  document.getElementById('m-cost-buy').textContent  = fmt(item.cost_buy);
-  document.getElementById('m-repair').textContent    = fmt(item.repair);
-  document.getElementById('m-del-buyee').textContent = fmt(item.del_buyee);
-  document.getElementById('m-del-dnipro').textContent= fmt(item.del_dnipro);
-  document.getElementById('m-del-spain').textContent = fmt(item.del_spain);
+  const mClass = marginClass(item.margin);
+  const mBadge = item.margin != null
+    ? `<div class="margin-badge ${mClass}">${item.margin.toFixed(0)}%</div>` : '';
 
-  const src = item.source;
-  document.getElementById('m-source').innerHTML = src && src.startsWith('http')
-    ? `Источник: <a href="${src}" target="_blank" rel="noopener">${src.slice(0,70)}…</a>`
-    : src ? `Источник: ${src}` : '';
+  const profitRow = item.profit != null
+    ? `<div class="card-profit-row"><span class="profit-val">+${f(item.profit)}</span><span class="profit-pct">${item.margin != null ? item.margin.toFixed(1)+'%' : ''}</span></div>` : '';
 
-  document.getElementById('modal').style.display = 'flex';
+  return `<div class="card" onclick="openModal(${idx},'${isTop}')" style="animation-delay:${Math.min(idx*.02,.4)}s">
+    <div class="card-img-wrap">${img}${mBadge}</div>
+    <div class="card-body">
+      <div class="card-top">
+        <div class="card-num">${item.num}</div>
+        ${badge(item.status)}
+      </div>
+      <div class="card-row">
+        <div class="price-block">
+          <div class="price-lbl">Себест.</div>
+          <div class="price-val">${f(item.cost)}</div>
+        </div>
+        ${item.sale != null ? `<div class="price-block">
+          <div class="price-lbl">Продажа</div>
+          <div class="price-val main">${f(item.sale)}</div>
+        </div>` : ''}
+      </div>
+      ${profitRow}
+      ${item.date ? `<div class="card-date">${item.date}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderCards() {
+  const items = getFiltered();
+  if (!items.length) {
+    document.getElementById('main').innerHTML = '<div class="empty">Ничего не найдено</div>';
+    return;
+  }
+  document.getElementById('main').innerHTML =
+    `<div class="grid">${items.map((item,i) => cardHTML(item, i)).join('')}</div>`;
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────────
+function openModal(idx, isTop) {
+  const items = isTop
+    ? allItems.filter(i=>i.profit!=null&&i.profit>0).sort((a,b)=>(b.profit||0)-(a.profit||0)).slice(0,3)
+    : getFiltered();
+  modalIdx = idx;
+  window._modalItems = items;
+  showModal(items, idx);
+  document.getElementById('overlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
-function closeModal(e) { if (e.target.id==='modal') closeModalDirect(); }
-function closeModalDirect() { document.getElementById('modal').style.display='none'; document.body.style.overflow=''; }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModalDirect(); });
+function showModal(items, idx) {
+  const item = items[idx];
+  if (!item) return;
 
-loadData();
+  const url = imgUrl(item);
+  document.getElementById('mImgWrap').innerHTML = url
+    ? `<img class="modal-img" src="${url}">` : '';
+
+  document.getElementById('mNum').textContent    = '# ' + item.num;
+  document.getElementById('mStatus').innerHTML   = badge(item.status);
+  document.getElementById('mCost').textContent   = f(item.cost);
+  document.getElementById('mSale').textContent   = f(item.sale);
+  document.getElementById('mProfit').textContent = item.profit != null ? '+'+f(item.profit) : '—';
+  document.getElementById('mMargin').textContent = item.margin != null ? item.margin.toFixed(1)+'%' : '—';
+  document.getElementById('mCostBuy').textContent  = f(item.cost_buy);
+  document.getElementById('mRepair').textContent   = f(item.repair);
+  document.getElementById('mDelBuyee').textContent = f(item.del_buyee);
+  document.getElementById('mDelDnipro').textContent= f(item.del_dnipro);
+  document.getElementById('mDelSpain').textContent = f(item.del_spain);
+
+  const src = item.source;
+  document.getElementById('mSrc').innerHTML = src && src.startsWith('http')
+    ? `Источник: <a href="${src}" target="_blank" rel="noopener">${src.slice(0,72)}…</a>`
+    : src ? 'Источник: ' + src : '';
+
+  const prev = document.getElementById('navPrev');
+  const next = document.getElementById('navNext');
+  prev.disabled = idx === 0;
+  next.disabled = idx === items.length - 1;
+  document.getElementById('navPos').textContent = (idx+1) + ' / ' + items.length;
+
+  // Scroll modal to top
+  document.getElementById('modalBox').scrollTop = 0;
+}
+
+function navigate(dir) {
+  const items = window._modalItems || [];
+  const newIdx = modalIdx + dir;
+  if (newIdx < 0 || newIdx >= items.length) return;
+  modalIdx = newIdx;
+  showModal(items, modalIdx);
+}
+
+function closeOverlay(e) { if (e.target.id==='overlay') closeModal(); }
+function closeModal() {
+  document.getElementById('overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('overlay').style.display === 'none') return;
+  if (e.key === 'Escape')      closeModal();
+  if (e.key === 'ArrowLeft')   navigate(-1);
+  if (e.key === 'ArrowRight')  navigate(1);
+});
+
+loadData(false);
 </script>
 </body>
 </html>

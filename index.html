@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resale Catalog</title>
+<title>База с Катей</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -15,10 +15,10 @@
   *{margin:0;padding:0;box-sizing:border-box}
   body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh}
 
-  header{border-bottom:1px solid var(--border);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(14,14,14,0.95);backdrop-filter:blur(12px);z-index:100}
-  .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+  header{border-bottom:1px solid var(--border);padding:22px 40px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;position:sticky;top:0;background:rgba(14,14,14,0.95);backdrop-filter:blur(12px);z-index:100}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;text-align:center}
   .logo span{color:var(--text-dim);font-style:italic}
-  .header-right{display:flex;align-items:center;gap:24px}
+  .header-right{display:flex;align-items:center;gap:16px;justify-content:flex-end}
   .refresh-btn{background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;padding:7px 14px;cursor:pointer;text-transform:uppercase;transition:all .2s}
   .refresh-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
   #last-updated{font-size:10px;color:var(--text-dim)}
@@ -105,10 +105,11 @@
 <body>
 
 <header>
-  <div class="logo">Resale <span>catalog</span></div>
+  <div></div>
+  <div class="logo">База <span>с Катей</span></div>
   <div class="header-right">
     <span id="last-updated"></span>
-    <button class="refresh-btn" onclick="loadData()">↻ обновить</button>
+    <button class="refresh-btn" onclick="loadData(true)">↻ обновить</button>
   </div>
 </header>
 
@@ -152,11 +153,9 @@
       </div>
       <div class="section-title">Расходы</div>
       <div class="delivery-grid">
-        <div class="delivery-item"><div class="delivery-label">Закуп (грн)</div><div class="delivery-value" id="m-cost-uah"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Ремонт (грн)</div><div class="delivery-value" id="m-repair"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Buyee</div><div class="delivery-value" id="m-del-buyee"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Dnipro</div><div class="delivery-value" id="m-del-dnipro"></div></div>
-        <div class="delivery-item"><div class="delivery-label">Доставка Испания</div><div class="delivery-value" id="m-del-spain"></div></div>
+        <div class="delivery-item"><div class="delivery-label">Доставка Buyee €</div><div class="delivery-value" id="m-del-buyee"></div></div>
+        <div class="delivery-item"><div class="delivery-label">Доставка Dnipro €</div><div class="delivery-value" id="m-del-dnipro"></div></div>
+        <div class="delivery-item"><div class="delivery-label">Доставка Испания €</div><div class="delivery-value" id="m-del-spain"></div></div>
       </div>
       <div class="modal-source" id="m-source"></div>
     </div>
@@ -165,7 +164,7 @@
 
 <script>
 // ── КОНФИГ ──────────────────────────────────────────────────────────────────
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdnKq1hs1LwWbvQTmSR1B4EgKw7jFPHhPZ5lZAJkbqtXEHIEVYDxXQTliHJRzh-1I/exec';
+const APPS_SCRIPT_URL = 'ВСТАВЬ_URL_СЮДА';
 const CLOUDINARY = 'https://res.cloudinary.com/dv83mie7y/image/upload/resale-crm/workspace1/';
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -208,9 +207,29 @@ function badge(s) {
   return '<span class="card-status status-active">В наличии</span>';
 }
 
-async function loadData() {
+async function loadData(refresh) {
+  const LS_KEY = 'baza_katey_data';
+  const LS_TIME = 'baza_katey_time';
+
+  // При открытии страницы — грузим из localStorage мгновенно
+  if (!refresh) {
+    const cached = localStorage.getItem(LS_KEY);
+    if (cached) {
+      try {
+        allItems = JSON.parse(cached);
+        const savedTime = localStorage.getItem(LS_TIME);
+        updateStats();
+        renderCards();
+        document.getElementById('last-updated').textContent =
+          'кэш от ' + (savedTime || '?');
+        return;
+      } catch(e) {}
+    }
+  }
+
+  // Обновить или первый раз — грузим с сервера
   document.getElementById('main').innerHTML =
-    '<div class="loader"><div class="loader-ring"></div><div class="loader-text">Загрузка</div></div>';
+    '<div class="loader"><div class="loader-ring"></div><div class="loader-text">Загрузка с сервера…</div></div>';
 
   if (APPS_SCRIPT_URL === 'ВСТАВЬ_URL_СЮДА') {
     document.getElementById('main').innerHTML =
@@ -219,7 +238,8 @@ async function loadData() {
   }
 
   try {
-    const res  = await fetch(APPS_SCRIPT_URL);
+    const url  = APPS_SCRIPT_URL + (refresh ? '?refresh=1' : '');
+    const res  = await fetch(url);
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || 'ошибка скрипта');
 
@@ -228,8 +248,6 @@ async function loadData() {
       photo:      r.photo || '',
       photo_col:  r.photo_col || '',
       source:     r.source || '',
-      cost_uah:   parseNum(r.cost_uah),
-      repair:     parseNum(r.repair),
       del_buyee:  parseNum(r.delivery_buyee),
       del_dnipro: parseNum(r.delivery_dnipro),
       del_spain:  parseNum(r.delivery_spain),
@@ -241,13 +259,28 @@ async function loadData() {
       date:       r.date || '',
     }));
 
+    // Сохраняем в localStorage
+    const timeStr = new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(allItems));
+      localStorage.setItem(LS_TIME, timeStr);
+    } catch(e) {}
+
     updateStats();
     renderCards();
-    document.getElementById('last-updated').textContent =
-      'обновлено ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+    document.getElementById('last-updated').textContent = 'обновлено ' + timeStr;
   } catch(e) {
-    document.getElementById('main').innerHTML =
-      `<div class="empty">Ошибка загрузки<br>${e.message}</div>`;
+    // Если сервер не ответил — показываем кэш если есть
+    const cached = localStorage.getItem(LS_KEY);
+    if (cached) {
+      allItems = JSON.parse(cached);
+      updateStats();
+      renderCards();
+      document.getElementById('last-updated').textContent = '⚠ офлайн, кэш от ' + (localStorage.getItem(LS_TIME)||'?');
+    } else {
+      document.getElementById('main').innerHTML =
+        `<div class="empty">Ошибка загрузки<br>${e.message}</div>`;
+    }
   }
 }
 
@@ -340,8 +373,6 @@ function openModal(idx) {
   document.getElementById('m-margin').textContent    = item.margin || '—';
   document.getElementById('m-status').innerHTML      = badge(item.status);
   document.getElementById('m-date').textContent      = item.date || '—';
-  document.getElementById('m-cost-uah').textContent  = fmtUah(item.cost_uah);
-  document.getElementById('m-repair').textContent    = fmtUah(item.repair);
   document.getElementById('m-del-buyee').textContent = fmt(item.del_buyee);
   document.getElementById('m-del-dnipro').textContent= fmt(item.del_dnipro);
   document.getElementById('m-del-spain').textContent = fmt(item.del_spain);
